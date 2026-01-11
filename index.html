@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DuckNetwork | Hoş Geldiniz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@400;600;900&display=swap');
+
+        :root {
+            --duck-yellow: #FFCC00;
+            --duck-orange: #FF9900;
+            --dark-bg: #0d0d0d;
+            --glass-bg: rgba(0, 0, 0, 0.85);
+            --mc-font: 'Luckiest Guy', cursive;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
+        body {
+            background: var(--dark-bg);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            /* Arka plan resmi ve gradyanı kaldırıldı, video eklenecek */
+            background: var(--dark-bg); /* Sadece koyu arka plan, video bunu kaplayacak */
+        }
+
+        /* --- VİDEO ARKA PLAN --- */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2; /* En arkada olması için */
+        }
+        .video-background iframe {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            pointer-events: none; /* Video üzerine tıklamayı engelle */
+        }
+
+        /* --- VİDEONUN ÜZERİNDEKİ SİYAH KATMAN (Overlay) --- */
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7); /* Siyahlık seviyesini buradan ayarlayabilirsin */
+            z-index: -1; /* Videonun önünde, içeriğin arkasında */
+        }
+
+        /* --- BİLDİRİM SİSTEMİ --- */
+        #notif-box {
+            position: fixed; bottom: 20px; right: -450px;
+            background: var(--duck-yellow); color: black;
+            padding: 15px 30px; border-radius: 12px; font-weight: 900;
+            transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10000; border-left: 6px solid #000; display: flex; align-items: center; gap: 10px;
+        }
+        #notif-box.active { right: 20px; }
+
+        /* --- ÜST NAVBAR --- */
+        nav {
+            position: fixed; top: 0; width: 100%;
+            background: var(--glass-bg); padding: 10px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 3px solid var(--duck-yellow); backdrop-filter: blur(10px); z-index: 1000;
+        }
+        .nav-links { display: flex; list-style: none; gap: 15px; align-items: center; }
+        .nav-links a { text-decoration: none; color: #fff; font-weight: 700; font-size: 12px; transition: 0.3s; display: flex; align-items: center; gap: 5px; }
+        .nav-links a:hover { color: var(--duck-yellow); }
+
+        .btn-sm { background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); }
+
+        #user-profile {
+            display: none; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 50px; border: 1px solid var(--duck-yellow);
+        }
+        #user-profile img { width: 28px; height: 28px; border-radius: 4px; }
+
+        /* --- %50 İNDİRİM ETİKETİ (40 Derece Eğik) --- */
+        .discount-badge {
+            position: absolute; top: 110px; left: 40px;
+            background: linear-gradient(45deg, #ff0000, #ffcc00);
+            color: white; padding: 12px 25px; font-family: var(--mc-font); font-size: 20px;
+            border: 3px solid white; transform: rotate(-40deg); z-index: 500;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.5); animation: float 2s infinite ease-in-out;
+        }
+        @keyframes float { 0%, 100% { transform: rotate(-40deg) translateY(0); } 50% { transform: rotate(-40deg) translateY(-8px); } }
+
+        /* --- HERO --- */
+        section { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; }
+        .hero h1 { font-family: var(--mc-font); font-size: clamp(50px, 10vw, 100px); color: var(--duck-yellow); text-shadow: 8px 8px 0px #000; margin-bottom: 20px; }
+        
+        .btn-main { padding: 15px 35px; font-family: var(--mc-font); font-size: 20px; text-decoration: none; border-radius: 8px; cursor: pointer; transition: 0.2s; display: inline-block; margin: 10px; border: none; }
+        .yellow { background: var(--duck-yellow); color: black; box-shadow: 0 6px 0 #b38f00; }
+        .purple { background: #5865F2; color: white; box-shadow: 0 6px 0 #3e46a1; }
+        .btn-main:active { transform: translateY(6px); box-shadow: none; }
+
+        /* --- MAĞAZA --- */
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; margin-top: 40px; }
+        .store-card { background: var(--glass-bg); border: 2px solid #333; border-radius: 15px; padding: 30px; transition: 0.3s; }
+
+        /* --- KAYIT FORMU --- */
+        .panel-box { background: var(--glass-bg); border: 3px solid var(--duck-yellow); padding: 40px; border-radius: 20px; max-width: 450px; width: 100%; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #222; color: white; outline: none; }
+
+        footer { background: #000; padding: 60px 20px; border-top: 5px solid var(--duck-yellow); }
+    </style>
+</head>
+<body>
+
+    <div class="video-background">
+        <iframe src="https://www.youtube.com/embed/Im6RusHotNY?autoplay=1&loop=1&playlist=Im6RusHotNY&controls=0&mute=1&disablekb=1&modestbranding=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+    <div class="video-overlay"></div> <div id="notif-box">🦆 <span id="notif-msg">IP Kopyalandı!</span></div>
+    <div class="discount-badge">%50 İNDİRİM</div>
+
+    <nav>
+        <div class="logo"><h2 style="font-family: var(--mc-font); color: var(--duck-yellow); font-size: 24px;">DUCKNETWORK</h2></div>
+        <ul class="nav-links">
+            <li><a href="#home">GİRİŞ</a></li>
+            <li><a href="https://duck-store.ikas.shop" target="_blank" class="btn-sm"><i class="fas fa-shopping-cart"></i> MAĞAZA SİTEM</a></li>
+            <li><a href="https://www.youtube.com/@duck213t" target="_blank" class="btn-sm"><i class="fab fa-youtube"></i> YOUTUBE</a></li>
+            <li id="user-profile">
+                <span id="u-name" style="font-weight:900; font-size: 12px;"></span>
+                <img id="u-head" src="">
+                <i class="fas fa-power-off" onclick="logout()" style="cursor:pointer; color:#ff4d4d; font-size: 14px;"></i>
+            </li>
+            <li class="ip-copy-btn" onclick="copyIP()" style="background:var(--duck-yellow); color:black; padding:8px 15px; border-radius:5px; font-family:var(--mc-font); cursor:pointer;">DUCKYT.ATERNOS.ME</li>
+        </ul>
+    </nav>
+
+    <section id="home">
+        <div class="hero">
+            <h1>DUCKNETWORK</h1>
+            <p style="font-size: 18px; margin-bottom: 25px;">Ördeklerin Dünyasına Adım At!</p>
+            <div class="btns">
+                <button class="btn-main yellow" onclick="copyIP()">OYNA</button>
+                <button class="btn-main purple" onclick="toast('Discord Çok Yakında!')">DISCORD</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="store" style="background: rgba(0,0,0,0.5);">
+        <h2 style="font-family: var(--mc-font); font-size: 45px; color:var(--duck-yellow);">OYUN İÇİ MARKET</h2>
+        <div class="store-grid">
+            <div class="store-card">
+                <i class="fas fa-crown fa-3x" style="color:var(--duck-yellow); margin-bottom:15px;"></i>
+                <h3>VIP ÜYELİKLER</h3>
+                <button class="btn-main yellow" style="font-size: 14px; width:100%;" onclick="toast('Bu kategori çok yakında aktif edilecek!')">YAKINDA</button>
+            </div>
+            <div class="store-card">
+                <i class="fas fa-box-open fa-3x" style="color:var(--duck-yellow); margin-bottom:15px;"></i>
+                <h3>EDİT KASALAR</h3>
+                <button class="btn-main yellow" style="font-size: 14px; width:100%;" onclick="toast('Bu kategori çok yakında aktif edilecek!')">YAKINDA</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="join-area">
+        <div id="login-form" class="panel-box">
+            <h2 style="font-family: var(--mc-font); margin-bottom: 20px; color:var(--duck-yellow);">HESAP KAYDI</h2>
+            <input type="text" id="mc-user" placeholder="Minecraft Kullanıcı Adın">
+            <input type="password" placeholder="Şifre Oluştur">
+            <button class="btn-main yellow" style="width:100%;" onclick="register()">KAYDI TAMAMLA</button>
+        </div>
+        <div id="user-dash" style="display:none;" class="panel-box">
+            <img id="big-head" src="" style="width:100px; border:3px solid var(--duck-yellow); border-radius:12px; margin-bottom:10px;">
+            <h2 id="welcome-msg" style="font-family: var(--mc-font); color:var(--duck-yellow);">GİRİŞ YAPILDI</h2>
+            <p id="p-user-display"></p>
+        </div>
+    </section>
+
+    <footer>
+        <h2 style="font-family: var(--mc-font); color: var(--duck-yellow);">DUCKNETWORK</h2>
+        <p>Eğlenceye katıl: <strong>duckyt.aternos.me</strong></p>
+    </footer>
+
+    <script>
+        function toast(message) {
+            const box = document.getElementById('notif-box');
+            document.getElementById('notif-msg').innerText = message;
+            box.classList.add('active');
+            setTimeout(() => box.classList.remove('active'), 3000);
+        }
+
+        function copyIP() {
+            navigator.clipboard.writeText("duckyt.aternos.me");
+            toast("IP Kopyalandı: duckyt.aternos.me");
+        }
+
+        function register() {
+            const user = document.getElementById('mc-user').value;
+            if(user.length < 3) return toast("Lütfen geçerli bir isim gir!");
+            localStorage.setItem('duckLogged', 'true');
+            localStorage.setItem('duckUser', user);
+            loginUI(user);
+        }
+
+        function loginUI(user) {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('user-dash').style.display = 'block';
+            document.getElementById('user-profile').style.display = 'flex';
+            const head = `https://minotar.net/helm/${user}/100.png`;
+            document.getElementById('u-name').innerText = user.toUpperCase();
+            document.getElementById('u-head').src = head;
+            document.getElementById('big-head').src = head;
+            document.getElementById('p-user-display').innerText = "Hoş geldin " + user + "!";
+            toast("Kayıt Başarılı!");
+        }
+
+        function logout() { localStorage.clear(); location.reload(); }
+
+        window.onload = () => {
+            if(localStorage.getItem('duckLogged') === 'true') loginUI(localStorage.getItem('duckUser'));
+        }
+    </script>
+</body>
+</html>
